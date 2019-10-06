@@ -53,15 +53,21 @@ Please see the assignment guidelines at
         ; them into one
         [(list? expr)
          (cond [(equal? (first expr) 'lambda)
-                ;Same code I used for ex4 for lambda
+                
+                (list 'closure expr env)]
+                
+                 ;Function Expression/definition
+
+               ;[(procedure? (first expr)) (apply (first expr))] ;Function Call
+               
+               ;Same code I used for ex4 for evaluate
+               [(list? (first expr))
                 (interpret 
                  (hash-setter (list-setup (list-merger (second (first expr)) (rest expr))))
                  (third (first expr)) ;(hash-setter (second expr) ))
                  )
-                ] ;Function Expression/definition
-
-               [(procedure? (first expr)) (apply (first expr))] ;Function Call
-
+                ]
+               
                [else "Inner Unknown Error"]
                
                )]
