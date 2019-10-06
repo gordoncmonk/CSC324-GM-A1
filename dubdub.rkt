@@ -60,26 +60,15 @@ Please see the assignment guidelines at
                  )
                 ] ;Function Expression/definition
 
-               [(procedure? (first expr)) (apply (first expr))]
+               [(procedure? (first expr)) (apply (first expr))] ;Function Call
 
                [else "Inner Unknown Error"]
-
                
-               ;[else Null] ;Function call should go here, but I haven't figured that out yet
-               
-               ;(first expr) is a placeholder for now
-               
-
-
-
-
                )]
         ; Is a function expression a procedure?
         
         [else "Unknown Error"]
         )
-  
-  
   )
 
 
@@ -126,7 +115,7 @@ Racket structs, feel free to switch this implementation to use a list/hash inste
       (if (number? (second bindings))
           (hash-set env (first bindings) (second bindings))
           (if (list? (second bindings))
-              (hash-set env (first bindings) (interpret env (second bindings) ) )
+              `   (hash-set env (first bindings) (interpret env (second bindings) ) )
               (hash-set env (first bindings) (dict-ref env (second bindings)))
               )
           )
@@ -137,14 +126,12 @@ Racket structs, feel free to switch this implementation to use a list/hash inste
 (define (list-merger lst1 lst2) ;Merges the two lists so I can use the same hash-function
   (cond
     [(null? lst1)     ; If the first list is empty
-         #;(lst2)
-         '()]           ; ... return the second list.
-        [(null? lst2)     ; If the second list is empty
-         #;(lst1)
-         '()]           ; ... return the first list.
-        [else        ; If both lists are non-empty
-          (append (list (first lst1)) (append (list (first lst2)) (list-merger (rest lst1) (rest lst2)))) 
-               ]
+     '()]           ; ... return the second list.
+    [(null? lst2)     ; If the second list is empty
+     '()]           ; ... return the first list.
+    [else        ; If both lists are non-empty
+     (append (list (first lst1)) (append (list (first lst2)) (list-merger (rest lst1) (rest lst2)))) 
+     ]
         )  ; ... make a recursively call, advancing over the first
   ; ... list, inverting the order used to pass the lists.
   )
