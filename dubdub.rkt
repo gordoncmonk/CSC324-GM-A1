@@ -43,7 +43,39 @@ Please see the assignment guidelines at
   Returns the value of the Dubdub expression under the given environment.
 |#
 (define (interpret env expr)
-  (void))
+  ;(void)
+  (cond [(null? expr) "Null Error"]
+
+        [(or (boolean? expr) (number? expr)) expr]
+        ;[(number? expr) expr]
+        ;[(boolean? expr) expr]
+        ; Noticed the above two have the same output, so I just merged
+        ; them into one
+        [(list? expr)
+         (cond [(equal? (first expr) 'lambda)
+                
+                (list 'closure expr env)]
+                
+                 ;Function Expression/definition
+
+               ;[(procedure? (first expr)) (apply (first expr))] ;Function Call
+               
+               ;Same code I used for ex4 for evaluate
+               [(list? (first expr))
+                (interpret 
+                 (hash-setter (list-setup (list-merger (second (first expr)) (rest expr))))
+                 (third (first expr)) ;(hash-setter (second expr) ))
+                 )
+                ]
+               
+               [else "Inner Unknown Error"]
+               
+               )]
+        ; Is a function expression a procedure?
+        
+        [else "Unknown Error"]
+        )
+  )
 
 
 ;-----------------------------------------------------------------------------------------
@@ -74,3 +106,45 @@ You can and should modify this as necessary. If you're having trouble working wi
 Racket structs, feel free to switch this implementation to use a list/hash instead.
 |#
 (struct closure (params body))
+
+;Hash Setting
+(define (hash-setter bindings)
+  (define hashList (hash))
+  (if (null? bindings)
+      (hashList)
+      (foldl hash-setter-helper (hash) bindings)
+      )
+  )
+(define (hash-setter-helper bindings env)
+  (if (null? bindings)
+      null
+      (if (number? (second bindings))
+          (hash-set env (first bindings) (second bindings))
+          (if (list? (second bindings))
+              `   (hash-set env (first bindings) (interpret env (second bindings) ) )
+              (hash-set env (first bindings) (dict-ref env (second bindings)))
+              )
+          )
+      )
+  )
+
+;List Setup for Lambda
+(define (list-merger lst1 lst2) ;Merges the two lists so I can use the same hash-function
+  (cond
+    [(null? lst1)     ; If the first list is empty
+     '()]           ; ... return the second list.
+    [(null? lst2)     ; If the second list is empty
+     '()]           ; ... return the first list.
+    [else        ; If both lists are non-empty
+     (append (list (first lst1)) (append (list (first lst2)) (list-merger (rest lst1) (rest lst2)))) 
+     ]
+        )  ; ... make a recursively call, advancing over the first
+  ; ... list, inverting the order used to pass the lists.
+  )
+
+(define (list-setup lst) ;Adds the list pairs together so I can use the same hash-function
+  (cond
+    [(null? lst) '()]
+    [else (append (list (list (first lst) (second lst))) (list-setup (rest (rest lst))))]
+    )
+  )
