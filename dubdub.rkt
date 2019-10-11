@@ -61,19 +61,34 @@ Please see the assignment guidelines at
                ;[(procedure? (first expr)) (apply (first expr))] ;Function Call
                
                ;Same code I used for ex4 for evaluate
-               [(list? (first expr))
-                (interpret 
-                 (hash-setter (list-setup (list-merger (second (first expr)) (rest expr))))
-                 (third (first expr)) ;(hash-setter (second expr) ))
-                 )
+               ;(list? (first expr)) Pre-Ex4 Code
+                ;(interpret 
+                ; (hash-setter (list-setup (list-merger (second (first expr)) (rest expr))))
+                ; (third (first expr)) ;(hash-setter (second expr) ))
+                ; )
+
+               ;Might need to change else statement if error checking later
+               [else
+
+                (let* ([closure (hash-ref env (interpret env (first expr)) (interpret env (first expr)))])
+  
+                  (interpret
+                   ; Set-up Environment in the same way I did for Ex4
+                   (foldl hash-setter (third closure) (list-setup (list-merger (second (second closure)) (map (map-calc env) (rest expr)))) )
+                   (third (second closure))
+                             )
+                  )
+                
                 ]
                
-               [else "Inner Unknown Error"]
+               ;[else "Inner Unknown Error"]
                
                )]
-        ; Is a function expression a procedure?
+       
         
-        [else "Unknown Error"]
+        [else (hash-ref env expr expr)]
+        ; Second expr here is in case there is no value for expr key
+        ; Then I just take the expr as is
         )
   )
 
@@ -108,37 +123,38 @@ Racket structs, feel free to switch this implementation to use a list/hash inste
 (struct closure (params body))
 
 ;Hash Setting
-(define (hash-setter bindings)
-  (define hashList (hash))
-  (if (null? bindings)
-      (hashList)
-      (foldl hash-setter-helper (hash) bindings)
-      )
-  )
-(define (hash-setter-helper bindings env)
+(define (hash-setter bindings env)
   (if (null? bindings)
       null
       (if (number? (second bindings))
           (hash-set env (first bindings) (second bindings))
           (if (list? (second bindings))
-              `   (hash-set env (first bindings) (interpret env (second bindings) ) )
-              (hash-set env (first bindings) (dict-ref env (second bindings)))
+              (hash-set env (first bindings) (eval-calc (second bindings) env))
+              (hash-set env (first bindings) (hash-ref env (second bindings) (second bindings)))
+              ;(hash-set env (first bindings) (dict-ref env (second bindings)))
               )
           )
       )
   )
 
+(define ( (map-calc env) expr)               ;Helper function that's a curry of eval-calc to allow me to map
+  (interpret env expr)
+  )
+
 ;List Setup for Lambda
+
 (define (list-merger lst1 lst2) ;Merges the two lists so I can use the same hash-function
   (cond
     [(null? lst1)     ; If the first list is empty
+     #;(lst2)
      '()]           ; ... return the second list.
     [(null? lst2)     ; If the second list is empty
+     #;(lst1)
      '()]           ; ... return the first list.
     [else        ; If both lists are non-empty
      (append (list (first lst1)) (append (list (first lst2)) (list-merger (rest lst1) (rest lst2)))) 
      ]
-        )  ; ... make a recursively call, advancing over the first
+    )  ; ... make a recursively call, advancing over the first
   ; ... list, inverting the order used to pass the lists.
   )
 
@@ -148,3 +164,5 @@ Racket structs, feel free to switch this implementation to use a list/hash inste
     [else (append (list (list (first lst) (second lst))) (list-setup (rest (rest lst))))]
     )
   )
+
+
