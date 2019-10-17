@@ -85,7 +85,8 @@ Please see the assignment guidelines at
     [else (apply (hash-ref builtins (first expr)) (map (map-calc env) (rest expr))) ]
           ;(list (interpret env (second expr)) (interpret env (third expr))))
           ; Recursive Structure of function
-          
+    )
+  )
 ; Returns whether a datum is a boolean or number literal.
 (define (literal? datum) (or (boolean? datum) (number? datum)))
 
