@@ -12,28 +12,36 @@ tests here
 |#
 
 (require rackunit)
-(require "dubdub.rkt")
+;(require "dubdub.rkt")
+(require "dubdub-v2.rkt")
 (require "dubdub_errors.rkt")
 
 
 (module+ test
-  #;(test-equal? "Numeric literal"
-                 (run-interpreter '(30))
-                 30)
+  (test-equal? "Numeric literal"
+               (run-interpreter '(30))
+               30)
 
-  #;(test-equal? "Multiple independent defines"
-                 (run-interpreter '((define a 1)
-                                    (define b #t)
-                                    (define c #f)
-                                    b))
-                 #t)
+  (test-equal? "Multiple independent defines"
+               (run-interpreter '((define a 1)
+                                  (define b #t)
+                                  (define c #f)
+                                  b))
+               #t)
 
-  #;(test-exn "Identifier with unused define (unbound-name error)"
+  (test-equal? "Dependent defines + dependent builtin function"
+               (run-interpreter '((define a 1)
+                                  (define b 2)
+                                  (define c (+ a b))
+                                  (+ c b)))
+               5)
+
+  (test-exn "Identifier with unused define (unbound-name error)"
               (regexp (format (hash-ref error-strings 'unbound-name) 'b))
               (thunk (run-interpreter '((define a 10)
                                         b))))
 
-  #;(test-equal? "Simple +"
+  (test-equal? "Simple +"
                  (run-interpreter '((+ 30 40)))
                  70)
 
