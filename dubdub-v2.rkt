@@ -80,8 +80,12 @@ Please see the assignment guidelines at
   (cond
     [(eq? (first expr) 'procedure?) (void)]
     [(= (length (rest expr)) 1) (apply (hash-ref builtins (first expr)) (interpret env (second expr)))]
-    [(= (length (rest expr)) 2) (apply (hash-ref builtins (first expr)) (list (interpret env (second expr)) (interpret env (third expr))))]))
-
+    ;[(= (length (rest expr)) 1) (apply (hash-ref builtins (first expr)) (interpret env (second expr)))]
+    ;[(= (length (rest expr)) 2) (apply (hash-ref builtins (first expr)) (list (interpret env (second expr)) (interpret env (third expr))))]
+    [else (apply (hash-ref builtins (first expr)) (map (map-calc env) (rest expr))) ]
+          ;(list (interpret env (second expr)) (interpret env (third expr))))
+          ; Recursive Structure of function
+          
 ; Returns whether a datum is a boolean or number literal.
 (define (literal? datum) (or (boolean? datum) (number? datum)))
 
