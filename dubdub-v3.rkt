@@ -31,28 +31,29 @@ Please see the assignment guidelines at
   not semantically valid.
 |#
 
-; Return a hash-table for environment
-;(define (environment hashL definitions)
+
+; For Define Functions and Define-contracts
 (define (environment definitions hashL)
   (cond
-   [(equal? (first definitions) 'define)
-      (hash-set hashL (second definitions) (interpret hashL (third definitions)))
-      ]
-   [(equal? (first definitions) 'define-contract)
-    (null)
-    ; Incomplete
-    ]
-   [else "TeHE"]
-   ; Filler for now
-   )
+    [(equal? (first definitions) 'define)
+     (hash-set hashL (second definitions) (interpret hashL (third definitions)))
+     ]
+    [(equal? (first definitions) 'define-contract)
+     (null)
+     ; Incomplete
+     ]
+    [else "TeHE"]
+    ; Filler for now
+    )
   )
-      
+
+
   
 
 (define (run-interpreter prog)
   ;(void)
 
-    (if (> (length prog) 1)
+  (if (> (length prog) 1)
       ;(interpret (foldl interpret (hash) (first prog))   (second prog) )
       (interpret (foldl environment (hash) (reverse (rest (reverse prog)))) (first (reverse prog)))
       (interpret (hash) (first prog))
@@ -80,11 +81,41 @@ Please see the assignment guidelines at
        [(equal? (first expr) 'lambda)
         (list 'closure expr env)
         ]
-       
+       ;Function Call\/
+       ; not else, need to fix
+       [else
+        (cond
+          [(builtin? (first expr))      (builtin-helper expr env)]
+          [(equal? 'closure (first (interpret env (first expr))))
+           (let ([bounds (map (interpret-map env) (rest expr))])
+              (let ([body (interpret env (first expr))])
+                ;merge second body with bounds
+                ;and put into env
+                ;evaluate third body
+                (interpret
+                 (foldl hash-setter (third body) (list-setup (list-merger (second (second body)) bounds)) )
+                 (third (second body)))
+                ))
+
+           ]
+          [else "error"]
+                     
+        ;expr = '((lambda (x) (+ x 1)) 1)
+        ;(first (interpret env (first expr))) 'closure
+        ;(map (interpret-map env) (rest expr)) ;(1)
+        ;(second (interpret env (first expr)))
+        )]
        )]
-    [else (hash-ref env expr)]
+    ;[else (hash-ref env expr)]
+    ;[else (hash-ref env expr [report-error 'unbound-name expr])]
+    [else (if (hash-has-key? env expr)
+              (hash-ref env expr)
+              ;(report-error 'unbound-name expr))]
+              expr)]
+    ; '#hash()
+    
     ; Need to raise error if no hash-ref
-     )
+    )
 
   )
 
@@ -107,6 +138,63 @@ Please see the assignment guidelines at
 
 ; Returns whether a given symbol refers to a builtin Dubdub function.
 (define (builtin? identifier) (hash-has-key? builtins identifier))
+
+
+(define (builtin-helper expr env)
+  (cond
+    [(eq? (first expr) 'procedure?) (void)]
+    [(= (length (rest expr)) 1)
+     (apply (hash-ref builtins (first expr)) (interpret env (second expr)))]
+    [(> (length (rest expr)) 1)
+     (apply (hash-ref builtins (first expr)) (map (interpret-map env) (rest expr))
+            )]))
+
+;Map for Interpret
+(define ( (interpret-map env) expr)
+  ;Most likely want to curry env and then call map with this curry
+  ;map is called on rest expr
+  (interpret env expr)
+  )
+
+; Return a hash-table for environment
+;(define (environment hashL definitions)
+
+;Hash Setting
+(define (hash-setter bindings env)
+  (if (null? bindings)
+      null
+      (if (number? (second bindings))
+          (hash-set env (first bindings) (second bindings))
+          (hash-set env (first bindings) (interpret env (second bindings) ))
+          )
+      )
+  )
+
+;List Setup for Lambda
+
+(define (list-merger lst1 lst2) ;Merges the two lists so I can use the same hash-function
+  (cond
+    [(null? lst1)     ; If the first list is empty
+     #;(lst2)
+     '()]           ; ... return the second list.
+    [(null? lst2)     ; If the second list is empty
+     #;(lst1)
+     '()]           ; ... return the first list.
+    [else        ; If both lists are non-empty
+     (append (list (first lst1)) (append (list (first lst2)) (list-merger (rest lst1) (rest lst2)))) 
+     ]
+    )  ; ... make a recursively call, advancing over the first
+  ; ... list, inverting the order used to pass the lists.
+  )
+
+(define (list-setup lst) ;Adds the list pairs together so I can use the same hash-function
+  (cond
+    [(null? lst) '()]
+    [else (append (list (list (first lst) (second lst))) (list-setup (rest (rest lst))))]
+    )
+  )
+
+
 
 #|
 Starter definition for a closure "struct". Racket structs behave similarly to
