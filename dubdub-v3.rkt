@@ -1,0 +1,119 @@
+#lang racket #| * CSC324 Fall 2019: Assignment 1 * |#
+#|
+Module: dubdub
+Description: Assignment 1: A More Featureful Interpreter
+Copyright: (c)University of Toronto, University of Toronto Mississauga 
+               CSC324 Principles of Programming Languages, Fall 2019
+
+The assignment handout can be found at
+
+    https://www.cs.toronto.edu/~lczhang/324/files/a1.pdf
+
+Please see the assignment guidelines at 
+
+    https://www.cs.toronto.edu/~lczhang/324/homework.html
+|#
+
+(provide run-interpreter)
+
+(require "dubdub_errors.rkt")
+
+
+;-----------------------------------------------------------------------------------------
+; Main functions (skeleton provided in starter code)
+;-----------------------------------------------------------------------------------------
+#|
+(run-interpreter prog) -> any
+  prog: datum?
+    A syntactically-valid Dubdub program.
+
+  Evaluates the Dubdub program and returns its value, or raises an error if the program is
+  not semantically valid.
+|#
+
+; Return a hash-table for environment
+;(define (environment hashL definitions)
+(define (environment definitions hashL)
+  (cond
+   [(equal? (first definitions) 'define)
+      (hash-set hashL (second definitions) (interpret hashL (third definitions)))
+      ]
+   [(equal? (first definitions) 'define-contract)
+    (null)
+    ; Incomplete
+    ]
+   [else "TeHE"]
+   ; Filler for now
+   )
+  )
+      
+  
+
+(define (run-interpreter prog)
+  ;(void)
+
+    (if (> (length prog) 1)
+      ;(interpret (foldl interpret (hash) (first prog))   (second prog) )
+      (interpret (foldl environment (hash) (reverse (rest (reverse prog)))) (first (reverse prog)))
+      (interpret (hash) (first prog))
+      )
+  
+  )
+
+#|
+(interpret env expr) -> any
+  env: hash?
+    The environment with which to evaluate the expression.
+  expr: datum?
+    A syntactically-valid Dubdub expression.
+
+  Returns the value of the Dubdub expression under the given environment.
+|#
+(define (interpret env expr)
+  ;(void)
+  (cond
+    [(null? expr) null]
+    [(or (boolean? expr) (number? expr)) expr]
+    
+    [(list? expr)
+     (cond
+       [(equal? (first expr) 'lambda)
+        (list 'closure expr env)
+        ]
+       
+       )]
+    [else (hash-ref env expr)]
+    ; Need to raise error if no hash-ref
+     )
+
+  )
+
+
+;-----------------------------------------------------------------------------------------
+; Helpers: Builtins and closures
+;-----------------------------------------------------------------------------------------
+; A hash mapping symbols for Dubdub builtin functions to their corresponding Racket value.
+(define builtins
+  (hash
+   '+ +
+   'equal? equal?
+   '< <
+   'integer? integer?
+   'boolean? boolean?
+   ; Note: You'll almost certainly need to replace procedure? here to properly return #t
+   ; when given your closure data structure at the end of Task 1!
+   'procedure? procedure?
+   ))
+
+; Returns whether a given symbol refers to a builtin Dubdub function.
+(define (builtin? identifier) (hash-has-key? builtins identifier))
+
+#|
+Starter definition for a closure "struct". Racket structs behave similarly to
+C structs (contain fields but no methods or encapsulation).
+Read more at https://docs.racket-lang.org/guide/define-struct.html.
+
+You can and should modify this as necessary. If you're having trouble working with
+Racket structs, feel free to switch this implementation to use a list/hash instead.
+|#
+(struct closure (params body))
