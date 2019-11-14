@@ -58,7 +58,6 @@ Please see the assignment guidelines at
       (interpret (foldl environment (hash) (reverse (rest (reverse prog)))) (first (reverse prog)))
       (interpret (hash) (first prog))
       )
-  
   )
 
 #|
@@ -81,21 +80,52 @@ Please see the assignment guidelines at
        [(equal? (first expr) 'lambda)
         (list 'closure expr env)
         ]
+       [(builtin? (first expr))      (builtin-helper expr env)]
+       [(not (hash-has-key? env (first expr)))
+        (report-error 'not-a-function expr)]
        ;Function Call\/
        ; not else, need to fix
        [else
         (cond
-          [(builtin? (first expr))      (builtin-helper expr env)]
           [(equal? 'closure (first (interpret env (first expr))))
            (let ([bounds (map (interpret-map env) (rest expr))])
               (let ([body (interpret env (first expr))])
                 ;merge second body with bounds
                 ;and put into env
                 ;evaluate third body
-                (interpret
-                 (foldl hash-setter (third body) (list-setup (list-merger (second (second body)) bounds)) )
-                 (third (second body)))
-                ))
+                (cond
+                  [(= (length (second (second body))) (length bounds))
+                  (interpret
+                     (foldl hash-setter (third body) (list-setup (list-merger (second (second body)) bounds)) )
+                     (third (second body)))]
+                  
+                  [(< (length (second (second body))) (length bounds))
+                    (report-error 'arity-mismatch (length bounds) (length (second (second body))))]
+
+                  ; second body > bounds
+                  ; Curry
+                  [else
+                   
+                   ;new expr
+                   #;(list-set body 1 (list-set (second body) 1 (list-tail (second (second body) ) (length bounds))))
+                   (list-set (list-set body 1 (list-set (second body) 1 (list-tail (second (second body) ) (length bounds))))
+                             2
+                    (foldl hash-setter (third body) (list-setup (list-merger (reverse (list-tail (reverse (second (second body))) (- (length (second (second body))) (length bounds)))) bounds)) )
+                    )
+
+                   ;new env
+                   #;(foldl hash-setter (third body) (list-setup (list-merger (reverse (list-tail (reverse (second (second body))) (- (length (second (second body))) (length bounds)))) bounds)) )
+                   
+                   ]
+                   
+                  
+                #;(if (= (length (second (second body))) (length bounds))
+                    (interpret
+                     (foldl hash-setter (third body) (list-setup (list-merger (second (second body)) bounds)) )
+                     (third (second body)))
+                    (report-error 'arity-mismatch (length bounds) (length (second (second body))))
+                    )
+                )))
 
            ]
           [else "error"]
