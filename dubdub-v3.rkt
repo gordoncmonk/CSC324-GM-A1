@@ -110,8 +110,8 @@ Please see the assignment guidelines at
     ;[else (hash-ref env expr [report-error 'unbound-name expr])]
     [else (if (hash-has-key? env expr)
               (hash-ref env expr)
-              ;(report-error 'unbound-name expr))]
-              expr)]
+              (report-error 'unbound-name expr))]
+              ;expr)]
     ; '#hash()
     
     ; Need to raise error if no hash-ref
