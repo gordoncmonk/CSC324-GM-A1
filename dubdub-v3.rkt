@@ -36,13 +36,33 @@ Please see the assignment guidelines at
 (define (environment definitions hashL)
   (cond
     [(equal? (first definitions) 'define)
-     (hash-set hashL (second definitions) (interpret hashL (third definitions)))
+     (if (hash-has-key? hashL (second definitions))
+         (report-error 'duplicate-name expr)
+         (hash-set hashL (second definitions) (interpret hashL (third definitions)))
+         )
      ]
     [(equal? (first definitions) 'define-contract)
-     (null)
+     ;(null)
+     ;(hash-set hashL (second definitions))
      ; Incomplete
+     (let ([contract (append (list (second definitions) 'contract))])
+       (cond
+         [(hash-has-key? hashL contract)
+          (report-error 'invalid-contract expr)]
+         [else (hash-set hashL contract
+                         (append (reverse (list-tail (reverse (third defintions)) 2)) (reverse (first (third definitions))))
+                         )]
+         ))
+
+     ;(list-set (second definitions) 1  )
      ]
     [else "TeHE"]
+#;(
+ (lambda (x) (< 0 x))
+ (lambda (x) (< 0 x))
+ ->
+ (lambda (x) (< 0 x))
+ )
     ; Filler for now
     )
   )
@@ -81,7 +101,7 @@ Please see the assignment guidelines at
         (list 'closure expr env)
         ]
        [(builtin? (first expr))      (builtin-helper expr env)]
-       [(not (hash-has-key? env (first expr)))
+       [(and (not (hash-has-key? env (first expr))) (not (list? (first expr))))
         (report-error 'not-a-function expr)]
        ;Function Call\/
        ; not else, need to fix
@@ -108,14 +128,16 @@ Please see the assignment guidelines at
                    
                    ;new expr
                    #;(list-set body 1 (list-set (second body) 1 (list-tail (second (second body) ) (length bounds))))
-                   (list-set (list-set body 1 (list-set (second body) 1 (list-tail (second (second body) ) (length bounds))))
-                             2
-                    (foldl hash-setter (third body) (list-setup (list-merger (reverse (list-tail (reverse (second (second body))) (- (length (second (second body))) (length bounds)))) bounds)) )
-                    )
 
                    ;new env
                    #;(foldl hash-setter (third body) (list-setup (list-merger (reverse (list-tail (reverse (second (second body))) (- (length (second (second body))) (length bounds)))) bounds)) )
                    
+                   (list-set
+                    (list-set body 1 (list-set (second body) 1 (list-tail (second (second body) ) (length bounds))))
+                    2
+                    (foldl hash-setter (third body) (list-setup (list-merger (reverse (list-tail (reverse (second (second body))) (- (length (second (second body))) (length bounds)))) bounds)) )
+                    )
+
                    ]
                    
                   
