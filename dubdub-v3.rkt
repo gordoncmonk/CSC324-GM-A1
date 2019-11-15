@@ -125,7 +125,11 @@ Please see the assignment guidelines at
             )
                      ;(second expr) 1
                      (apply (first (hash-ref env contract)) (second expr))
-
+                     ; (hash-ref builtins (first expr))
+                     ; Might want to map this function
+                     ; Compare to builtin?
+                     
+                     
                      ;No contract => I can use original code up to this point
                      (cond
                        [(= (length (second (second body))) (length bounds))
