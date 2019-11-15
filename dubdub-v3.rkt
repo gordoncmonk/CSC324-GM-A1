@@ -50,13 +50,15 @@ Please see the assignment guidelines at
          [(hash-has-key? hashL contract)
           (report-error 'invalid-contract contract)]
          [else (hash-set hashL contract
-                         (append (reverse (list-tail (reverse (third definitions)) 2)) (reverse (first (third definitions))))
+                         (append (reverse (list-tail (reverse (third definitions)) 2)) (list (first (reverse (third definitions)))))
                          )]
+         #;[else (append (reverse (list-tail (reverse (third definitions)) 2)) (list (first (reverse (third definitions)))))]
+         ;[else (first (reverse (third definitions)))]
          ))
 
      ;(list-set (second definitions) 1  )
      ]
-    [else "TeHE"]
+    [else "Unknown Error"]
 #;(
  (lambda (x) (< 0 x))
  (lambda (x) (< 0 x))
@@ -91,6 +93,7 @@ Please see the assignment guidelines at
 |#
 (define (interpret env expr)
   ;(void)
+  
   (cond
     [(null? expr) null]
     [(or (boolean? expr) (number? expr)) expr]
@@ -109,46 +112,50 @@ Please see the assignment guidelines at
         (cond
           [(equal? 'closure (first (interpret env (first expr))))
            (let ([bounds (map (interpret-map env) (rest expr))])
-              (let ([body (interpret env (first expr))])
-                ;merge second body with bounds
-                ;and put into env
-                ;evaluate third body
-                (cond
-                  [(= (length (second (second body))) (length bounds))
-                  (interpret
-                     (foldl hash-setter (third body) (list-setup (list-merger (second (second body)) bounds)) )
-                     (third (second body)))]
+             (let ([body (interpret env (first expr))])
+               ;merge second body with bounds
+               ;and put into env
+               ;evaluate third body
+               (let ([contract (append (list (first expr) 'contract))])
+                 ;(if ((append (list (first expr) 'contract))))
+                 (if (hash-has-key? env contract)
+
+                     ;(hash-ref env contract)
+                     #;(apply (hash-ref env contract) (map (interpret-map env) (rest expr))
+            )
+                     ;(second expr) 1
+                     (apply (first (hash-ref env contract)) (second expr))
+
+                     ;No contract => I can use original code up to this point
+                     (cond
+                       [(= (length (second (second body))) (length bounds))
+                        (interpret
+                         (foldl hash-setter (third body) (list-setup (list-merger (second (second body)) bounds)) )
+                         (third (second body)))]
                   
-                  [(< (length (second (second body))) (length bounds))
-                    (report-error 'arity-mismatch (length bounds) (length (second (second body))))]
+                       [(< (length (second (second body))) (length bounds))
+                        (report-error 'arity-mismatch (length bounds) (length (second (second body))))]
 
-                  ; second body > bounds
-                  ; Curry
-                  [else
+                       ; second body > bounds
+                       ; Curry
+                       [else
                    
-                   ;new expr
-                   #;(list-set body 1 (list-set (second body) 1 (list-tail (second (second body) ) (length bounds))))
+                        ;new expr
+                        #;(list-set body 1 (list-set (second body) 1 (list-tail (second (second body) ) (length bounds))))
 
-                   ;new env
-                   #;(foldl hash-setter (third body) (list-setup (list-merger (reverse (list-tail (reverse (second (second body))) (- (length (second (second body))) (length bounds)))) bounds)) )
+                        ;new env
+                        #;(foldl hash-setter (third body) (list-setup (list-merger (reverse (list-tail (reverse (second (second body))) (- (length (second (second body))) (length bounds)))) bounds)) )
                    
-                   (list-set
-                    (list-set body 1 (list-set (second body) 1 (list-tail (second (second body) ) (length bounds))))
-                    2
-                    (foldl hash-setter (third body) (list-setup (list-merger (reverse (list-tail (reverse (second (second body))) (- (length (second (second body))) (length bounds)))) bounds)) )
-                    )
+                        (list-set
+                         (list-set body 1 (list-set (second body) 1 (list-tail (second (second body) ) (length bounds))))
+                         2
+                         (foldl hash-setter (third body) (list-setup (list-merger (reverse (list-tail (reverse (second (second body))) (- (length (second (second body))) (length bounds)))) bounds)) )
+                         )
 
-                   ]
-                   
-                  
-                #;(if (= (length (second (second body))) (length bounds))
-                    (interpret
-                     (foldl hash-setter (third body) (list-setup (list-merger (second (second body)) bounds)) )
-                     (third (second body)))
-                    (report-error 'arity-mismatch (length bounds) (length (second (second body))))
-                    )
-                )))
-
+                        ]
+                       )
+                 ))
+               ))
            ]
           [else "error"]
                      
