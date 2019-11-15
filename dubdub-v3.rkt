@@ -37,7 +37,7 @@ Please see the assignment guidelines at
   (cond
     [(equal? (first definitions) 'define)
      (if (hash-has-key? hashL (second definitions))
-         (report-error 'duplicate-name expr)
+         (report-error 'duplicate-name (second definitions))
          (hash-set hashL (second definitions) (interpret hashL (third definitions)))
          )
      ]
@@ -48,9 +48,9 @@ Please see the assignment guidelines at
      (let ([contract (append (list (second definitions) 'contract))])
        (cond
          [(hash-has-key? hashL contract)
-          (report-error 'invalid-contract expr)]
+          (report-error 'invalid-contract contract)]
          [else (hash-set hashL contract
-                         (append (reverse (list-tail (reverse (third defintions)) 2)) (reverse (first (third definitions))))
+                         (append (reverse (list-tail (reverse (third definitions)) 2)) (reverse (first (third definitions))))
                          )]
          ))
 
